@@ -17,14 +17,13 @@ for i in range(0, len(files) - 1, 2):
     sRGB_img = SRGB.XYZ_to_sRGB(gt_xyz)
     sample_img   = sample.item().get('image')
     sample_bayer = sample.item().get('bayer')
-    sample_sigma = sample.item().get('sigma')
     sample_img /= np.max(sample_img)
     # debayering
     rgb = menon.bayer2rgb(sample_img, pattern=sample_bayer)
     trgb = rgb + abs(np.min(rgb))
     trgb /= np.max(rgb)
     # denoising
-    bm3d_img = bm3d.bm3d(trgb, sigma_psd=sample_sigma, stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING)
+    bm3d_img = bm3d.bm3d(trgb, sigma_psd=[0.1], stage_arg=bm3d.BM3DStages.HARD_THRESHOLDING)
     bm3d_img /= np.max(bm3d_img)
     # color space transform
     linear_regres = LinearRegression(fit_intercept=False)
@@ -33,5 +32,3 @@ for i in range(0, len(files) - 1, 2):
     # save pictures
     plt.imsave(sys.argv[2] + 'predicts/' + str(i) + '.png', SRGB.XYZ_to_sRGB(test))
     plt.imsave(sys.argv[2] + 'targets/' + str(i) + '.png', sRGB_img)
-
-
