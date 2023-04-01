@@ -4,6 +4,7 @@ from utils.XYZ_to_SRGB import XYZ_TO_SRGB
 from debayering import menon
 import bm3d
 from sklearn.linear_model import LinearRegression 
+import pickle
 import os
 import sys
 
@@ -27,7 +28,11 @@ for i in range(0, len(files) - 1, 2):
     bm3d_img /= np.max(bm3d_img)
     # color space transform
     linear_regres = LinearRegression(fit_intercept=False)
-    linear_regres = linear_regres.fit(bm3d_img.reshape(-1, 3), gt_xyz.reshape(-1, 3))
+    with open('weights.pkl', 'rb') as f:                                        # If you generate first picture, 
+        linear_regres = pickle.load(f)                                          # comment these 2 strings.
+    linear_regres = linear_regres.fit(bm3d_img.reshape(-1, 3), gt_xyz.reshape(-1, 3))   # If you generate dataset  
+    with open('weights.pkl', 'wb') as f:                                                # on test data, 
+        pickle.dump(linear_regres, f)                                                   # comment these 3 strings.
     test = linear_regres.predict(bm3d_img.reshape(-1, 3)).reshape(512, 512, 3)
     # save pictures
     plt.imsave(sys.argv[2] + 'predicts/' + str(i) + '.png', SRGB.XYZ_to_sRGB(test))
